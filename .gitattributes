@@ -1,0 +1,14 @@
+# Normaliza saltos de línea: LF en el repositorio para todos los archivos de texto
+* text=auto eol=lf
+
+# Scripts y documentación: siempre LF
+*.py   text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.json text eol=lf
+
+# Archivos binarios: nunca tocar
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.mp4  binary
