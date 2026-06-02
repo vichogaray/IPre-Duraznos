@@ -71,13 +71,6 @@ Máscaras binarias
 | `Varilla_heatmap.py` | Mapa de calor del esqueleto basado en el modelo de varillas. Para cada píxel del esqueleto acumula la carga floral de las varillas cercanas (kernel gaussiano) y lo colorea con un espectro de calor. Usa el output de `varilla_density.py`. |
 | `RW_heatmap.py` | Mapa de calor de densidad floral por subsecciones de rama, asignando flores con Random Walk. |
 
-### Utilidades
-
-| Script | Descripción |
-|---|---|
-| `copy_masks_sin_grafo.py` | Copia las máscaras binarias correspondientes a esqueletos que aún no tienen grafo, a una carpeta de trabajo. |
-
----
 
 ## Dependencias
 
