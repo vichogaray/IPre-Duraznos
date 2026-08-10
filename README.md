@@ -32,15 +32,19 @@ Mascaras binarias
       |
       v
 [1] Esqueletizacion              src/preprocessing/
-      |                          (Otsu, suavizado morfologico, Zhang-Suen,
-      v                           pruning, reparacion de gaps)
-[2] Grafo jerarquico de ramas    src/graph/
-      |                          (topologia -> nodos, aristas, orden de
-      v                           ramificacion via BFS desde el tronco)
+      |                          skeletonize.py
+      |                          Otsu, suavizado morfologico, Zhang-Suen,
+      v                          pruning, reparacion de gaps
+[2] Grafo jerarquico de ramas    src/preprocessing/
+      |                          build_skeleton_graph.py, branch_hierarchy.py,
+      |                          export_graph_json.py
+      v                          topologia -> nodos, aristas, orden de
+      |                          ramificacion via BFS desde el tronco
+      v
 [3] Asignacion flor -> rama      src/assignment/
-      |                          (metodos morfologicos y de reconstruccion
-      v                           de brotes)
-[4] Mapa de carga floral         src/density/
+      |                          metodos morfologicos y de reconstruccion
+      v                          de brotes
+[4] Mapa de carga floral         src/heatmap/
       |
       v
 [5] Evaluacion contra GT         src/evaluation/
@@ -53,11 +57,9 @@ Mascaras binarias
 ```
 .
 ├── src/
-│   ├── preprocessing/           Esqueletizacion de mascaras
+│   ├── preprocessing/           Esqueletizacion y grafo de ramas
 │   │   ├── skeletonize.py           Pipeline masivo de esqueletizacion
-│   │   └── tune_skeleton_params.py  GUI de calibracion de parametros
-│   │
-│   ├── graph/                   Construccion del grafo de ramas
+│   │   ├── tune_skeleton_params.py  GUI de calibracion de parametros
 │   │   ├── build_skeleton_graph.py  Esqueleto -> grafo coloreado (GUI + batch)
 │   │   ├── branch_hierarchy.py      Clasificacion por orden de ramificacion
 │   │   └── export_graph_json.py     Exporta el grafo a JSON (hub del pipeline)
@@ -76,7 +78,7 @@ Mascaras binarias
 │   │       ├── candidate_shoots.py      Brotes candidatos (rayos desde tronco)
 │   │       └── lsystem.py               Varillas generadas con L-System
 │   │
-│   ├── density/                 Mapas de carga floral
+│   ├── heatmap/                 Mapas de carga floral
 │   │   ├── heatmap_shoots.py        Heatmap del esqueleto (metodo principal)
 │   │   ├── heatmap_shoots_v2.py     Heatmap para brotes candidatos
 │   │   └── heatmap_random_walk.py   Heatmap por subsecciones de rama
@@ -120,14 +122,14 @@ parametros. Se ejecutan directamente (F5 en el editor, o `python <script>`).
 python src/preprocessing/skeletonize.py
 
 # 2. Construir el grafo de ramas y exportarlo a JSON
-python src/graph/build_skeleton_graph.py
-python src/graph/export_graph_json.py
+python src/preprocessing/build_skeleton_graph.py
+python src/preprocessing/export_graph_json.py
 
 # 3. Asignar flores a ramas (metodo principal)
 python src/assignment/shoot_reconstruction/cluster_projection.py
 
 # 4. Generar el mapa de carga floral
-python src/density/heatmap_shoots.py
+python src/heatmap/heatmap_shoots.py
 
 # 5. Evaluar contra el ground truth
 python src/evaluation/flower_branch_accuracy.py
@@ -154,7 +156,7 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
 ## Pendiente
 
-- [ ] Mapa de densidad en flores·cm⁻¹ (`src/density/flower_load_map.py`)
+- [ ] Mapa de densidad en flores·cm⁻¹ (`src/heatmap/flower_load_map.py`)
 - [ ] Centralizar rutas y parametros en `configs/`
 - [ ] Modulo compartido que elimine el codigo duplicado: `load_flowers` (x10),
       `load_graph_json` (x8) y `estimate_pixels_per_cm` (x5) estan reescritas en
@@ -163,7 +165,7 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 - [ ] `data/sample/` con 2–3 arboles de ejemplo
 - [ ] `LICENSE` y `CITATION.cff`
 - [ ] Enlace al dataset en Zenodo (DOI)
-- [ ] Arreglar `src/density/heatmap_shoots.py:38` (`SINGLE_IMAGE` sin valor)
+- [ ] Arreglar `src/heatmap/heatmap_shoots.py:38` (`SINGLE_IMAGE` sin valor)
 
 ---
 

@@ -37,7 +37,7 @@ import cv2
 # ejecutar este archivo directamente (F5), no solo como modulo.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from src.graph.branch_hierarchy import (
+from src.preprocessing.branch_hierarchy import (
     detect_background,
     extract_branches_by_color,
     build_adjacency,
