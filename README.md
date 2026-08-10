@@ -86,15 +86,11 @@ Mascaras binarias
 │   │   ├── heatmap_wasserstein.py       Wasserstein geodesico GT vs. metodo
 │   │   └── flower_branch_accuracy.py    Accuracy flor->rama multi-metodo
 │   │
-│   └── common/                  (pendiente) Codigo compartido
+│   └── common/                  Codigo compartido (por poblar)
 │
-├── data/sample/                 Imagenes de ejemplo (pendiente)
 ├── docs/                        Documentacion del metodo
 │   ├── PIPELINE.md                  Descripcion detallada y formatos de datos
 │   └── AUDITORIA_REPO.md            Auditoria y plan de trabajo
-├── results/                     Figuras y metricas generadas
-├── configs/                     (pendiente) Configuracion centralizada
-├── notebooks/                   (pendiente) Reproduccion de figuras
 └── requirements.txt
 ```
 
@@ -140,8 +136,9 @@ python src/evaluation/flower_branch_accuracy.py
 ```
 
 > **Nota:** las rutas de entrada/salida estan actualmente hardcodeadas en cada
-> script y apuntan a carpetas locales. Centralizarlas en `configs/` es una
-> tarea pendiente (ver la auditoria).
+> script y apuntan a carpetas locales de la maquina de desarrollo, por lo que
+> los scripts no se ejecutan tal cual tras clonar el repositorio.
+> Centralizarlas es la principal tarea pendiente (ver la auditoria).
 
 ---
 
