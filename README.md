@@ -172,6 +172,16 @@ correcta; **similitud de forma** compara donde se concentra la carga floral a lo
 largo del esqueleto, y solo se calcula para los metodos que reconstruyen
 varillas.
 
+> **La accuracy NO permite comparar familias de metodos entre si.** El GT anota
+> 22-110 puntos sobre el esqueleto, no la rama de cada flor: la "rama
+> verdadera" de una flor se deriva tomando la del **punto-GT mas cercano en
+> linea recta**. Ese criterio es casi el mismo que usan los metodos
+> morfologicos (proximidad sobre el grafo), que por tanto parten con ventaja.
+> Los metodos de varilla asignan la flor a la rama de la que nace su brote, que
+> puede no ser la mas cercana en el aire; cuando aciertan biologicamente, esta
+> metrica los cuenta como error. La similitud de forma no depende de esa
+> derivacion y ordena los metodos al reves.
+>
 > **Preliminar.** 4 arboles anotados sobre 292 es una base pequena para
 > sostener conclusiones: ampliar el ground truth es trabajo pendiente. Los
 > metodos `euclidean` y los hibridos quedan fuera porque detectan ramas por
