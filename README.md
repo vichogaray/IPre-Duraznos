@@ -172,15 +172,21 @@ correcta; **similitud de forma** compara donde se concentra la carga floral a lo
 largo del esqueleto, y solo se calcula para los metodos que reconstruyen
 varillas.
 
-> **La accuracy NO permite comparar familias de metodos entre si.** El GT anota
-> 22-110 puntos sobre el esqueleto, no la rama de cada flor: la "rama
-> verdadera" de una flor se deriva tomando la del **punto-GT mas cercano en
-> linea recta**. Ese criterio es casi el mismo que usan los metodos
-> morfologicos (proximidad sobre el grafo), que por tanto parten con ventaja.
-> Los metodos de varilla asignan la flor a la rama de la que nace su brote, que
-> puede no ser la mas cercana en el aire; cuando aciertan biologicamente, esta
-> metrica los cuenta como error. La similitud de forma no depende de esa
-> derivacion y ordena los metodos al reves.
+> **La accuracy NO permite comparar familias de metodos entre si.** El GT si
+> anota la rama madre de cada flor, siguiendo la varilla a ojo, pero lo hace de
+> forma **agregada**: cada clic marca una base de varilla sobre el esqueleto y
+> registra cuantas flores cuelgan de ella (p. ej. frame46: 110 flores
+> distribuidas en 18 puntos). Queda anotado *cuantas* flores nacen de cada
+> rama, no *cuales*.
+>
+> Para calcular la accuracy hay que desagregar eso, y `gt_branch_per_flower`
+> lo hace emparejando cada flor con el punto-GT **mas cercano en linea recta**.
+> Ahi entra el sesgo: los puntos estan en el esqueleto y las flores al extremo
+> de varillas de 30-60 cm, asi que una flor rara vez esta cerca de su propia
+> base. El emparejamiento por proximidad reproduce el criterio de los metodos
+> morfologicos, que quedan favorecidos, y penaliza a los de varilla cuando
+> asignan la flor a la rama de la que realmente nace. La similitud de forma no
+> depende de esa desagregacion y ordena los metodos al reves.
 >
 > **Preliminar.** 4 arboles anotados sobre 292 es una base pequena para
 > sostener conclusiones: ampliar el ground truth es trabajo pendiente. Los
