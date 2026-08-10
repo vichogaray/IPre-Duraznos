@@ -165,7 +165,7 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 - [ ] `data/sample/` con 2–3 arboles de ejemplo
 - [ ] `LICENSE` y `CITATION.cff`
 - [ ] Enlace al dataset en Zenodo (DOI)
-- [ ] Arreglar `src/heatmap/heatmap_shoots.py:38` (`SINGLE_IMAGE` sin valor)
+- [x] ~~Arreglar `src/heatmap/heatmap_shoots.py:38` (`SINGLE_IMAGE` sin valor)~~
 
 ---
 

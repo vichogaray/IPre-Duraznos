@@ -35,7 +35,7 @@ VARILLA_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\densidad f
 GRAFOS_IMG_DIR    = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
 OUTPUT_DIR        = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\mapa de calor tronco"
 
-SINGLE_IMAGE = 
+SINGLE_IMAGE = None   # None = procesa todas las imagenes en lote
 SHOW_PLOT    = False
 
 # === ESCALA (igual que varilla_density.py) ===
