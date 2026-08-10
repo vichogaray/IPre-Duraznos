@@ -97,14 +97,12 @@ def load_json(path):
         return json.load(f)
 
 
-def estimate_pixels_per_cm(graph_data, assumed_tree_height_cm):
-    ys = [px[0] for b in graph_data['branches'] for px in b['pixels']]
-    if len(ys) < 2:
-        return 1.0
-    height_px = float(max(ys) - min(ys))
-    if height_px <= 1.0 or assumed_tree_height_cm <= 0:
-        return 1.0
-    return height_px / float(assumed_tree_height_cm)
+# La calibracion px <-> cm vive en src/common/geometry.py para que exista una
+# sola definicion compartida por todos los metodos. Se anade la raiz del
+# repositorio al path para poder ejecutar este archivo directamente (F5).
+import sys as _sys
+_sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from src.common.geometry import estimate_pixels_per_cm
 
 
 def build_skeleton_pixels(graph_data):
