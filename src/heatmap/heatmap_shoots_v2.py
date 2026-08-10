@@ -1,7 +1,7 @@
 """
 Varilla Heatmap 2 - Mapa de calor del esqueleto por carga floral (para v2)
 ==========================================================================
-Analogo a Varilla_heatmap.py pero para varilla_density_2.py (varillas por
+Analogo a heatmap_shoots.py pero para candidate_shoots.py (varillas por
 disparo desde el tronco). Dibuja TODO el esqueleto coloreado por densidad
 floral acumulada (no por rama).
 
@@ -26,7 +26,7 @@ Output:
   - PNG con el esqueleto coloreado por mapa de calor + colorbar
 
 Uso: F5. Toma los mismos parametros de clustering/fusion/rayos que
-varilla_density_2.py (se importan de ahi).
+candidate_shoots.py (se importan de ahi).
 """
 
 # =====================================================================

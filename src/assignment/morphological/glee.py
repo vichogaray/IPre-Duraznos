@@ -100,7 +100,7 @@ def glee_embedding(G, dimensions):
 
 
 # ---------------------------------------------------------------------------
-#  1. Cargar datos  (mismas funciones que laplacian_density.py)
+#  1. Cargar datos  (mismas funciones que graph_laplacian.py)
 # ---------------------------------------------------------------------------
 
 def load_graph_json(json_path):
@@ -246,7 +246,7 @@ def asignar_flores_glee(graph_data, flowers):
 
 
 # ---------------------------------------------------------------------------
-#  4. Visualizacion  (misma estructura que laplacian_density.py)
+#  4. Visualizacion  (misma estructura que graph_laplacian.py)
 # ---------------------------------------------------------------------------
 
 def visualize(img, graph_data, flowers, flower_branch_indices, idx_to_bid,

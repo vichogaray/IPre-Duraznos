@@ -21,7 +21,7 @@ GT Heatmap Compare - Trunk heatmap del GT vs. de un metodo + similitud
 
 USO:
   1. Ajusta GT_JSON y METHOD_JSON abajo (cambia el input aqui).
-  2. F5 / python gt_heatmap_compare.py
+  2. F5 / python heatmap_wasserstein.py
 """
 
 # =====================================================================

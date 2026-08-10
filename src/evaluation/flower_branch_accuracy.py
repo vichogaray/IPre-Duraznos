@@ -13,7 +13,7 @@ cada metodo contra el GT. DOS tipos de metrica segun el metodo:
 
   B) WASSERSTEIN GEODESICO  (solo varilla_density 1 y 2)
      Similitud de la FORMA del perfil de carga floral a lo largo del
-     esqueleto (reusa gt_heatmap_compare). Para metodos que producen
+     esqueleto (reusa heatmap_wasserstein). Para metodos que producen
      varillas con base_xy + num_flowers.
 
 Metodos evaluados:
@@ -27,7 +27,7 @@ estan alineados con el grafo/GT, por eso quedan fuera de esta evaluacion.
 
 Salida: tabla resumen en consola + CSV acumulativo (flor_rama_resumen.csv).
 
-USO: F5 / python gt_flor_rama_eval.py
+USO: F5 / python flower_branch_accuracy.py
 """
 
 import os
@@ -42,13 +42,24 @@ from scipy.spatial import cKDTree
 #  CONFIG
 # =====================================================================
 
+# Raiz del repositorio, deducida de la ubicacion de este archivo
+# (src/evaluation/ -> dos niveles arriba). Evita depender del directorio
+# desde el que se ejecute.
+REPO_ROOT  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
 DESKTOP    = r"C:\Users\vgara\OneDrive\Desktop"
 GT_DIR     = DESKTOP + r"\GT"
-BASE_DIR   = DESKTOP + r"\IPre"
-DENS_DIR   = BASE_DIR + r"\codigos\densidades"
-FLORES_DIR = BASE_DIR + r"\json flores"
-GRAPH_DIR  = BASE_DIR + r"\grafos json"
-V1_JSON_DIR= BASE_DIR + r"\densidades\densidad floral varilla\json"
+BASE_DIR   = REPO_ROOT
+FLORES_DIR = os.path.join(BASE_DIR, "json flores")
+GRAPH_DIR  = os.path.join(BASE_DIR, "grafos json")
+V1_JSON_DIR= os.path.join(BASE_DIR, "densidades", "densidad floral varilla", "json")
+
+# Modulos de metodo, tras la reestructuracion del repositorio.
+# Antes se cargaban por nombre desde codigos/densidades/; ahora viven en
+# src/assignment/ y src/evaluation/ con nombres en ingles.
+SRC_DIR    = os.path.join(BASE_DIR, "src")
+MORPH_DIR  = os.path.join(SRC_DIR, "assignment", "morphological")
+SHOOT_DIR  = os.path.join(SRC_DIR, "assignment", "shoot_reconstruction")
 
 OUT_CSV    = GT_DIR + r"\flor_rama_resumen.csv"
 
@@ -56,8 +67,7 @@ OUT_CSV    = GT_DIR + r"\flor_rama_resumen.csv"
 #  Carga dinamica de los modulos de metodo (sin correr su plotting)
 # =====================================================================
 
-def _load_module(name, filename):
-    path = os.path.join(DENS_DIR, filename)
+def _load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
     m = importlib.util.module_from_spec(spec)
     sys.modules[name] = m
@@ -69,14 +79,15 @@ import matplotlib
 matplotlib.use('Agg')
 
 MOD = {}
-MOD['glee'] = _load_module('m_glee', 'glee_density.py')
-MOD['lap']  = _load_module('m_lap',  'laplacian_density.py')
-MOD['rw']   = _load_module('m_rw',   'random_walk_density.py')
-MOD['v2']   = _load_module('m_v2',   'varilla_density_2.py')
+MOD['glee'] = _load_module('m_glee', os.path.join(MORPH_DIR, 'glee.py'))
+MOD['lap']  = _load_module('m_lap',  os.path.join(MORPH_DIR, 'graph_laplacian.py'))
+MOD['rw']   = _load_module('m_rw',   os.path.join(MORPH_DIR, 'random_walk.py'))
+MOD['v2']   = _load_module('m_v2',   os.path.join(SHOOT_DIR, 'candidate_shoots.py'))
 
-# gt_heatmap_compare para el Wasserstein de v1/v2
-sys.path.insert(0, DESKTOP)
-import gt_heatmap_compare as HC
+# heatmap_wasserstein (antes gt_heatmap_compare, en el escritorio) aporta el
+# Wasserstein geodesico para v1/v2. Vive en esta misma carpeta.
+HC = _load_module('m_hc', os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                       'heatmap_wasserstein.py'))
 
 
 # =====================================================================
@@ -169,7 +180,7 @@ METHODS = [
 
 
 # =====================================================================
-#  WASSERSTEIN para v1 / v2  (reusa gt_heatmap_compare)
+#  WASSERSTEIN para v1 / v2  (reusa heatmap_wasserstein)
 # =====================================================================
 
 def build_v2_varilla_data(graph_data, flowers_xy, image_name):

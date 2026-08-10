@@ -154,18 +154,41 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
 ---
 
+## Resultados preliminares
+
+Evaluacion de `src/evaluation/flower_branch_accuracy.py` sobre las **4 imagenes
+con ground truth anotado a mano** (frames 32, 46, 64, 172):
+
+| Metodo | Accuracy flor->rama | Similitud de forma (Wasserstein) |
+|---|---|---|
+| random_walk | 78.1 % | - |
+| glee | 77.7 % | - |
+| laplacian | 71.3 % | - |
+| varilla_density (proyeccion de clusters) | 64.4 % | 0.898 |
+| varilla_density_2 (brotes candidatos) | 53.0 % | 0.874 |
+
+Dos metricas complementarias: **accuracy** mide cuantas flores reciben la rama
+correcta; **similitud de forma** compara donde se concentra la carga floral a lo
+largo del esqueleto, y solo se calcula para los metodos que reconstruyen
+varillas.
+
+> **Preliminar.** 4 arboles anotados sobre 292 es una base pequena para
+> sostener conclusiones: ampliar el ground truth es trabajo pendiente. Los
+> metodos `euclidean` y los hibridos quedan fuera porque detectan ramas por
+> color del PNG y sus `branch_id` no se alinean con el grafo ni con el GT.
+
+---
+
 ## Pendiente
 
 - [ ] Mapa de densidad en flores·cm⁻¹ (`src/heatmap/flower_load_map.py`)
 - [ ] Centralizar rutas y parametros en `configs/`
-- [ ] Modulo compartido que elimine el codigo duplicado: `load_flowers` (x10),
-      `load_graph_json` (x8) y `estimate_pixels_per_cm` (x5) estan reescritas en
-      cada script. **Las copias se verificaron funcionalmente identicas** (solo
-      difieren en estilo y comentarios), asi que los resultados actuales son
-      consistentes. Se unifican como prevencion: `estimate_pixels_per_cm`
-      calibra px<->cm, de modo que si en el futuro se edita una copia y no las
-      demas, los metodos pasarian a medir con escalas distintas y dejarian de
-      ser comparables entre si -- sin que nada falle de forma visible
+- [x] ~~Unificar `estimate_pixels_per_cm`~~ -> `src/common/geometry.py`. Estaba
+      reescrita en 5 scripts; ahora hay una sola definicion. Verificado sobre 40
+      imagenes: los 200 valores son identicos a los de antes del cambio
+- [ ] Unificar tambien `load_flowers` (x10) y `load_graph_json` (x8). Menos
+      urgente: son lectores de JSON y una divergencia haria fallar el script de
+      inmediato, no falsear resultados en silencio
 - [ ] `data/sample/` con 2–3 arboles de ejemplo
 - [ ] `LICENSE` y `CITATION.cff`
 - [ ] Enlace al dataset en Zenodo (DOI)
