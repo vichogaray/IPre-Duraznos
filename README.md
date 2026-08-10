@@ -83,11 +83,17 @@ Mascaras binarias
 │   │   ├── heatmap_shoots_v2.py     Heatmap para brotes candidatos
 │   │   └── heatmap_random_walk.py   Heatmap por subsecciones de rama
 │   │
+│   ├── common/                  Codigo compartido
+│   │   ├── paths.py                 Rutas del proyecto en un solo lugar
+│   │   └── geometry.py              Calibracion px <-> cm
+│   │
 │   └── evaluation/              Validacion contra ground truth
 │       ├── gt_annotator.py              GUI de anotacion del GT
 │       ├── heatmap_wasserstein.py       Wasserstein geodesico GT vs. metodo
 │       └── flower_branch_accuracy.py    Accuracy flor->rama multi-metodo
 │
+├── configs/                     Configuracion
+│   └── paths.json.example           Plantilla para apuntar a otros datos
 ├── docs/                        Documentacion del metodo
 │   ├── PIPELINE.md                  Descripcion detallada y formatos de datos
 │   └── AUDITORIA_REPO.md            Auditoria y plan de trabajo
@@ -135,10 +141,28 @@ python src/heatmap/heatmap_shoots.py
 python src/evaluation/flower_branch_accuracy.py
 ```
 
-> **Nota:** las rutas de entrada/salida estan actualmente hardcodeadas en cada
-> script y apuntan a carpetas locales de la maquina de desarrollo, por lo que
-> los scripts no se ejecutan tal cual tras clonar el repositorio.
-> Centralizarlas es la principal tarea pendiente (ver la auditoria).
+### Donde estan los datos
+
+Las rutas viven en un solo lugar, [`src/common/paths.py`](src/common/paths.py),
+y se deducen de la ubicacion del repositorio. Por defecto se buscan en la raiz
+del propio repositorio (`Mascaras/`, `Grafos/`, `grafos json/`, ...).
+
+Para apuntar a otra ubicacion, por orden de prioridad:
+
+```bash
+# 1. Variable de entorno
+set IPRE_DATA_DIR=D:\datos\duraznos            # Windows (cmd)
+$env:IPRE_DATA_DIR = "D:\datos\duraznos"       # PowerShell
+
+# 2. Archivo de configuracion
+copy configs\paths.json.example configs\paths.json   # y editarlo
+```
+
+Para comprobar que rutas estan activas y si existen:
+
+```bash
+python src/common/paths.py
+```
 
 ---
 
@@ -198,7 +222,9 @@ varillas.
 ## Pendiente
 
 - [ ] Mapa de densidad en flores·cm⁻¹ (`src/heatmap/flower_load_map.py`)
-- [ ] Centralizar rutas y parametros en `configs/`
+- [x] ~~Centralizar rutas~~ -> `src/common/paths.py` + `configs/paths.json`.
+      Las 57 constantes de ruta de los 19 scripts se verificaron: resuelven a
+      las mismas carpetas que antes
 - [x] ~~Unificar `estimate_pixels_per_cm`~~ -> `src/common/geometry.py`. Estaba
       reescrita en 5 scripts; ahora hay una sola definicion. Verificado sobre 40
       imagenes: los 200 valores son identicos a los de antes del cambio

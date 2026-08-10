@@ -71,3 +71,7 @@ desktop.ini
 !data/
 !data/sample/
 !data/sample/**
+
+# Configuracion local de rutas (cada maquina la suya).
+# La plantilla versionada es configs/paths.json.example
+configs/paths.json

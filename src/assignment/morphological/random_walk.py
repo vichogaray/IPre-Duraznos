@@ -42,14 +42,21 @@ Uso:
     2. Dale Run (F5)
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..")))
+from src.common.paths import DATA_DIR, FLOWERS_JSON_DIR, GRAPHS_IMG_DIR, GRAPH_JSON_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-GRAPH_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
-GRAFOS_IMG_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
-JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
-OUTPUT_DIR      = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidad floral random walk"
+GRAPH_JSON_DIR  = GRAPH_JSON_DIR
+GRAFOS_IMG_DIR  = GRAPHS_IMG_DIR
+JSON_FLORES_DIR = FLOWERS_JSON_DIR
+OUTPUT_DIR      = _os.path.join(DATA_DIR, "densidad floral random walk")
 
 K_NEIGHBORS = 3      # Nearest branches per flower (flower->branch edges)
 K_FLOWER    = 5      # Nearest flowers per flower  (flower->flower edges)

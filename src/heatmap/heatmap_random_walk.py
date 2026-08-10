@@ -16,15 +16,22 @@ Uso:
     Dale Run (F5)
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import DATA_DIR, FLOWERS_JSON_DIR, GRAPHS_IMG_DIR, GRAPH_JSON_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
+JSON_FLORES_DIR = FLOWERS_JSON_DIR
 
-GRAPH_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
-GRAFOS_IMG_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
-OUTPUT_DIR      = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\heatmap original"
+GRAPH_JSON_DIR  = GRAPH_JSON_DIR
+GRAFOS_IMG_DIR  = GRAPHS_IMG_DIR
+OUTPUT_DIR      = _os.path.join(DATA_DIR, "densidades", "heatmap original")
 
 SECTION_LENGTH   = 30    # Pixeles de esqueleto por subseccion (mas bajo = mas detalle)
 BRANCH_THICKNESS = 7     # Grosor visual de las ramas en pixeles (1 = sin engrosar)

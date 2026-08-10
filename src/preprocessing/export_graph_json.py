@@ -10,12 +10,19 @@ Uso:
     Dale Run (F5)
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import GRAPHS_IMG_DIR, GRAPH_JSON_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-GRAFOS_DIR        = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
-OUTPUT_DIR        = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
+GRAFOS_DIR        = GRAPHS_IMG_DIR
+OUTPUT_DIR        = GRAPH_JSON_DIR
 
 COLOR_TOLERANCE   = 25
 PROXIMITY_GAP     = 7

@@ -36,14 +36,21 @@ USO:
   3. Anota, pulsa 's' para guardar.
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import DATA_DIR, GT_DIR
+
+
 # =====================================================================
 #  CONFIGURACION  (cambia el input aqui)
 # =====================================================================
 
-BASE_DIR        = r"C:\Users\vgara\OneDrive\Desktop\IPre"
+BASE_DIR        = DATA_DIR
 GRAPH_JSON_DIR  = BASE_DIR + r"\grafos json"
 GRAFOS_IMG_DIR  = BASE_DIR + r"\Grafos"
-OUTPUT_DIR      = r"C:\Users\vgara\OneDrive\Desktop\GT"   # donde se guarda el GT
+OUTPUT_DIR      = GT_DIR   # donde se guarda el GT
 
 # Imagen a anotar: nombre del JSON de grafo dentro de GRAPH_JSON_DIR
 INPUT_GRAPH_JSON = "imgs_frame172_00000_graph.json"

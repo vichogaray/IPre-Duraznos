@@ -24,16 +24,23 @@ USO:
   2. F5 / python heatmap_wasserstein.py
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import DATA_DIR, GT_DIR
+
+
 # =====================================================================
 #  CONFIGURACION  (cambia el input aqui)
 # =====================================================================
 
-BASE_DIR       = r"C:\Users\vgara\OneDrive\Desktop\IPre"
+BASE_DIR       = DATA_DIR
 GRAPH_JSON_DIR = BASE_DIR + r"\grafos json"
 GRAFOS_IMG_DIR = BASE_DIR + r"\Grafos"
 
 # Ground truth (output de gt_annotator.py)
-GT_JSON     = r"C:\Users\vgara\OneDrive\Desktop\GT\imgs_frame32_00000_graph_GT.json"
+GT_JSON     = _os.path.join(GT_DIR, "imgs_frame32_00000_graph_GT.json")
 
 # Metodo a contrastar (cualquier JSON con varillas[].base_xy + num_flowers)
 METHOD_JSON = BASE_DIR + r"\densidades\densidad floral varilla\json\imgs_frame32_00000_graph_varilla.json"
@@ -45,7 +52,7 @@ OUTPUT_PNG  = "auto"
 
 # CSV acumulativo: cada corrida agrega/actualiza una fila (imagen+metodo).
 # None -> no se escribe CSV.
-RESULTS_CSV = r"C:\Users\vgara\OneDrive\Desktop\GT\comparaciones.csv"
+RESULTS_CSV = _os.path.join(GT_DIR, "comparaciones.csv")
 
 # === PARAMETROS DE CALOR (deben coincidir con Varilla_heatmap.py) ===
 ASSUMED_TREE_HEIGHT_CM = 350.0

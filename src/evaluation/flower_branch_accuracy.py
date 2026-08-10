@@ -38,30 +38,30 @@ import importlib.util
 import numpy as np
 from scipy.spatial import cKDTree
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from src.common.paths import (
+    REPO_ROOT, DATA_DIR, GT_DIR, GRAPH_JSON_DIR, FLOWERS_JSON_DIR,
+)
+
 # =====================================================================
 #  CONFIG
 # =====================================================================
 
-# Raiz del repositorio, deducida de la ubicacion de este archivo
-# (src/evaluation/ -> dos niveles arriba). Evita depender del directorio
-# desde el que se ejecute.
-REPO_ROOT  = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+BASE_DIR   = DATA_DIR
+FLORES_DIR = FLOWERS_JSON_DIR
+GRAPH_DIR  = GRAPH_JSON_DIR
+V1_JSON_DIR= os.path.join(DATA_DIR, "densidades", "densidad floral varilla", "json")
 
-DESKTOP    = r"C:\Users\vgara\OneDrive\Desktop"
-GT_DIR     = DESKTOP + r"\GT"
-BASE_DIR   = REPO_ROOT
-FLORES_DIR = os.path.join(BASE_DIR, "json flores")
-GRAPH_DIR  = os.path.join(BASE_DIR, "grafos json")
-V1_JSON_DIR= os.path.join(BASE_DIR, "densidades", "densidad floral varilla", "json")
-
-# Modulos de metodo, tras la reestructuracion del repositorio.
-# Antes se cargaban por nombre desde codigos/densidades/; ahora viven en
-# src/assignment/ y src/evaluation/ con nombres en ingles.
-SRC_DIR    = os.path.join(BASE_DIR, "src")
+# Modulos de metodo, tras la reestructuracion del repositorio. Se anclan a
+# REPO_ROOT y no a DATA_DIR, porque son codigo: viven siempre en el
+# repositorio aunque los datos esten en otro disco.
+SRC_DIR    = os.path.join(REPO_ROOT, "src")
 MORPH_DIR  = os.path.join(SRC_DIR, "assignment", "morphological")
 SHOOT_DIR  = os.path.join(SRC_DIR, "assignment", "shoot_reconstruction")
 
-OUT_CSV    = GT_DIR + r"\flor_rama_resumen.csv"
+OUT_CSV    = os.path.join(GT_DIR, "flor_rama_resumen.csv")
 
 # =====================================================================
 #  Carga dinamica de los modulos de metodo (sin correr su plotting)

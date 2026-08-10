@@ -24,12 +24,19 @@ los defaults aprendidos de tu ground truth dan mejores resultados que el
 estimado automático. Se puede reactivar poniendo ADAPTIVE = True.
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import MASKS_DIR, SKELETONS_DIR
+
+
 # =====================================================================
 #  CONFIGURACIÓN — MODIFICA AQUÍ
 # =====================================================================
 
-INPUT_FOLDER  = r"C:\Users\vgara\OneDrive\Desktop\IPre\Mascaras"
-OUTPUT_FOLDER = r"C:\Users\vgara\OneDrive\Desktop\IPre\Esqueletizacion"
+INPUT_FOLDER  = MASKS_DIR
+OUTPUT_FOLDER = SKELETONS_DIR
 
 # --- Imagen única / ajuste manual --------------------------------------
 # SINGLE_IMAGE = None  -> procesa TODA la carpeta en batch (automático).

@@ -12,11 +12,18 @@ Param Tuner — Ajuste de parámetros sobre máscaras filtradas
 - El indicador en el título muestra: [✓ guardada] o [pendiente].
 """
 
-FOLDER_PATH   = r"C:\Users\vgara\OneDrive\Desktop\IPre\mascaras sin grafo"
-OUTPUT_FOLDER = r"C:\Users\vgara\OneDrive\Desktop\IPre\esqueletos sin grafo"
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import DATA_DIR
+
+
+FOLDER_PATH   = _os.path.join(DATA_DIR, "mascaras sin grafo")
+OUTPUT_FOLDER = _os.path.join(DATA_DIR, "esqueletos sin grafo")
 
 # Archivo JSON donde se guardan los parámetros
-PARAMS_FILE = r"C:\Users\vgara\OneDrive\Desktop\IPre\mascaras sin grafo\parametros.json"
+PARAMS_FILE = _os.path.join(DATA_DIR, "mascaras sin grafo", "parametros.json")
 
 IMAGE_EXTENSIONS = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff")
 

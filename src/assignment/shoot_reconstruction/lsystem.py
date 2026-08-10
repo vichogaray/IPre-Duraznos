@@ -22,13 +22,20 @@ quedaron asignadas. NO guarda archivos.
 Uso: F5. Edita los parametros nombrados abajo para tunear.
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..")))
+from src.common.paths import DATA_DIR, FLOWERS_JSON_DIR, GRAPHS_IMG_DIR, GRAPH_JSON_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-GRAPH_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
-GRAFOS_IMG_DIRS = [r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"]
-JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
+GRAPH_JSON_DIR  = GRAPH_JSON_DIR
+GRAFOS_IMG_DIRS = [GRAPHS_IMG_DIR]
+JSON_FLORES_DIR = FLOWERS_JSON_DIR
 
 # Imagen unica de salida.
 #   - Si es un nombre de archivo -> procesa SOLO esa imagen.
@@ -48,7 +55,7 @@ SHOW_PLOTS = False
 #   - SAVE_DIR = r"...ruta"  -> guarda un PNG por imagen en esa carpeta
 #                               (la crea si no existe). Lo tipico para un lote:
 #                               SAVE_DIR = "...", SHOW_PLOTS = False.
-SAVE_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\salidas_lsystem"
+SAVE_DIR = _os.path.join(DATA_DIR, "salidas_lsystem")
 SAVE_DPI = 150
 
 # === ESCALA (calibracion px <-> cm POR IMAGEN) ===

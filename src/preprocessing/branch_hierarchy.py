@@ -17,11 +17,18 @@ Uso:
     3. Dale Run (F5)
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import GRAPHS_IMG_DIR
+
+
 # =====================================================================
 #  CONFIGURACIÓN — MODIFICA AQUÍ
 # =====================================================================
 
-SKELETON_PATH = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"  # carpeta o archivo individual
+SKELETON_PATH = GRAPHS_IMG_DIR  # carpeta o archivo individual
 
 COLOR_TOLERANCE   = 25    # Tolerancia RGB para agrupar colores similares
 PROXIMITY_GAP     = 7     # Distancia max (px) para considerar ramas "conectadas"

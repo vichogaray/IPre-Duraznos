@@ -15,12 +15,19 @@ Uso:
     3. Dale Run (F5)descarg
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..")))
+from src.common.paths import FLOWERS_JSON_DIR, GRAPHS_IMG_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-GRAPH_PATH = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"  # carpeta o archivo individual
-JSON_DIR   = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
+GRAPH_PATH = GRAPHS_IMG_DIR  # carpeta o archivo individual
+JSON_DIR   = FLOWERS_JSON_DIR
 
 # None = auto-detectar JSON desde el nombre del grafo. O pon ruta manual:
 JSON_PATH  = None

@@ -13,19 +13,26 @@ Interacción:
   · Checkboxes                         →  activa/desactiva junctions, endpoints, labels
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..")))
+from src.common.paths import GRAPHS_IMG_DIR, SKELETONS_DIR
+
+
 # =====================================================================
 #  CONFIGURACIÓN — MODIFICA AQUÍ
 # =====================================================================
 # Pon la ruta de UNA imagen específica aquí. Si existe como archivo,
 # se abre solo esa imagen (la navegación ◀/▶ recorrerá las demás de su carpeta).
 # Déjalo vacío ("") para usar SKELETON_FOLDER en su lugar.
-SKELETON_IMAGE   = r"C:\Users\vgara\OneDrive\Desktop\IPre\Esqueletizacion\imgs_frame455_00000.png"
+SKELETON_IMAGE   = _os.path.join(SKELETONS_DIR, "imgs_frame455_00000.png")
 
-OUTPUT_FOLDER    = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
+OUTPUT_FOLDER    = GRAPHS_IMG_DIR
 
 # --- Modo batch (procesa toda una carpeta sin GUI) ---
 BATCH_MODE       = False
-SKELETON_FOLDER  = r"C:\Users\vgara\OneDrive\Desktop\IPre\Esqueletizacion"
+SKELETON_FOLDER  = SKELETONS_DIR
 MIN_BRANCH_PX    = 5       # Largo mínimo de rama en píxeles
 LINE_THICKNESS   = 2       # Grosor visual de las ramas
 SHOW_JUNCTIONS   = True    # Mostrar nodos de bifurcación (blanco)

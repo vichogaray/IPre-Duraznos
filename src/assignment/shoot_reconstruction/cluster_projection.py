@@ -23,13 +23,20 @@ Uso:
     3. F5 -> abre el plot de matplotlib
 """
 
+# Rutas del proyecto centralizadas en src/common/paths.py. Se anade la raiz
+# del repositorio al path para poder ejecutar este archivo directamente (F5).
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..")))
+from src.common.paths import FLOWERS_JSON_DIR, GRAPHS_IMG_DIR, GRAPH_JSON_DIR
+
+
 # =====================================================================
 #  CONFIGURACION
 # =====================================================================
 
-GRAPH_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
-GRAFOS_IMG_DIRS = [r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"]
-JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
+GRAPH_JSON_DIR  = GRAPH_JSON_DIR
+GRAFOS_IMG_DIRS = [GRAPHS_IMG_DIR]
+JSON_FLORES_DIR = FLOWERS_JSON_DIR
 
 # Imagen a procesar: nombre del JSON de grafo dentro de GRAPH_JSON_DIR
 IMAGE_NAME = "imgs_frame101_00000_graph.json"

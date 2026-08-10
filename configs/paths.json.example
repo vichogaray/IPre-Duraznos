@@ -1,0 +1,6 @@
+{
+  "_comentario": "Copia este archivo a configs/paths.json y ajusta las rutas para apuntar a donde tengas los datos. Tambien puedes usar la variable de entorno IPRE_DATA_DIR, que tiene prioridad sobre este archivo.",
+  "data_dir": "C:/Users/vgara/OneDrive/Desktop/IPre",
+  "gt_dir": "C:/Users/vgara/OneDrive/Desktop/GT",
+  "output_dir": "C:/Users/vgara/OneDrive/Desktop/IPre/resultados"
+}
