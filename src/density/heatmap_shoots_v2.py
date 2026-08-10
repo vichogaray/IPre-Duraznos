@@ -83,9 +83,11 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 from matplotlib.patches import Circle
 
-# Importar el pipeline de v2 (mismo directorio).
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import varilla_density_2 as v2
+# Importar el pipeline de v2 (renombrado a candidate_shoots y movido a
+# src/assignment/shoot_reconstruction/). Se anade la raiz del repositorio al
+# path para poder ejecutar este archivo directamente (F5).
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+import src.assignment.shoot_reconstruction.candidate_shoots as v2
 
 
 # =====================================================================

@@ -51,8 +51,12 @@ import matplotlib
 matplotlib.use('Agg')  # backend sin ventana para guardar archivos
 import matplotlib.pyplot as plt
 
-# Importar funciones de Identificador_de_ramas
-from Identificador_de_ramas import (
+# Importar funciones de la jerarquia de ramas. La raiz del repositorio se
+# anade al path para poder ejecutar este archivo directamente (F5).
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")))
+
+from src.graph.branch_hierarchy import (
     detect_background,
     extract_branches_by_color,
     build_adjacency,

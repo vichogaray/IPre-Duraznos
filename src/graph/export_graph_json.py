@@ -29,10 +29,15 @@ TRUNK_SHORT_RATIO = 0.30
 import os
 import glob
 import json
+import sys
 import numpy as np
 import cv2
 
-from Identificador_de_ramas import (
+# La raiz del repositorio se anade al path para poder importar src.* al
+# ejecutar este archivo directamente (F5), no solo como modulo.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+
+from src.graph.branch_hierarchy import (
     detect_background,
     extract_branches_by_color,
     build_adjacency,

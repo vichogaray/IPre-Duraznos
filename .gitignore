@@ -1,18 +1,73 @@
-# Python
+# =====================================================================
+#  Datos pesados -- se depositan en Zenodo, NO en GitHub
+# =====================================================================
+# El dataset completo (292 arboles, ~700 MB) vive fuera del repositorio.
+# Solo data/sample/ (2-3 arboles) se versiona, ver excepcion al final.
+IMGS/
+Mascaras/
+Esqueletizacion/
+Grafos/
+Identificador_de_ramas/
+grafos json/
+json flores/
+mascaras sin grafo/
+esqueletos sin grafo/
+
+# Outputs del pipeline. OJO: la barra inicial ancla la regla a la raiz del
+# repositorio, de modo que se ignora IPre/densidades/ (348 MB de resultados)
+# pero NO src/.../densidades/ ni codigos/densidades/ (que son codigo).
+/densidades/
+results/
+mapa de calor tronco/
+densidad floral*/
+heatmap*/
+*.zip
+
+# =====================================================================
+#  Artefactos de calibracion (dependen de la maquina)
+# =====================================================================
+parametros.json
+defaults_aprendidos.json
+
+# =====================================================================
+#  Python
+# =====================================================================
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
 
 # Entornos virtuales
 venv/
 .venv/
 env/
+ENV/
 
-# IDE
+# =====================================================================
+#  IDE / editores
+# =====================================================================
 .vscode/
 .idea/
+*.swp
+*~
 
-# Sistema
+# =====================================================================
+#  Sistema operativo
+# =====================================================================
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# =====================================================================
+#  Excepciones -- esto SI se versiona
+# =====================================================================
+# Las imagenes de muestra del paper, pese a las reglas de arriba.
+!data/
+!data/sample/
+!data/sample/**

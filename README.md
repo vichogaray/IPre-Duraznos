@@ -1,100 +1,180 @@
-# IPre Duraznos — Análisis de Ramas y Densidad Floral
+# IPre Duraznos — Carga floral en duraznos por asignacion geometrica estructural
 
-Pipeline de visión por computador para el análisis estructural de árboles de
-durazno (*Prunus persica*) a partir de imágenes: desde la esqueletización de
-máscaras binarias hasta la estimación de densidad floral.
+Pipeline de vision por computador para estimar la **carga floral** de arboles de
+durazno (*Prunus persica*) a partir de imagenes RGB individuales, a escala de
+arbol y de rama.
 
-El enfoque principal es el método de **varillas**: las flores del duraznero no
-nacen de las ramas grandes visibles (tronco, primarias, secundarias) sino de
-*varillas* (ramos mixtos de 30–60 cm) que crecen del esqueleto y no son
-visibles en la imagen. El pipeline infiere esas varillas a partir de la
-disposición de las flores y las conecta a su rama madre.
+Codigo asociado al articulo *RGB image processing of trees for flower load
+across tree and branch scales by structure-aware geometric assignment*.
 
----
-
-## Pipeline general
-
-```
-Máscaras binarias
-      │
-      ▼
-[1] Esqueletización            Esqueletizacion.py  /  Param_tuner_esqueletizacion.py
-      │                        (incluye reparación automática de gaps de 1px)
-      ▼
-[2] Grafo de ramas coloreado   Grafo.py
-      │
-      ▼
-[3] Estructura de ramas        build_graph_json.py  (usa Identificador_de_ramas.py)
-      │                        -> JSON con nodos, aristas, jerarquía y píxeles
-      ▼
-[4] Densidad floral            varilla_density.py  (+ otros métodos)
-      │
-      ▼
-[5] Visualización              Varilla_heatmap.py  /  RW_heatmap.py
-```
+> **Estado:** repositorio en preparacion para publicacion. Ver
+> [`docs/AUDITORIA_REPO.md`](docs/AUDITORIA_REPO.md) para el plan de trabajo
+> pendiente.
 
 ---
 
-## Descripción de los scripts
+## Idea central: las varillas
 
-### Esqueletización
+Las flores del duraznero **no nacen de las ramas visibles** (tronco, primarias,
+secundarias) sino de **varillas** (ramos mixtos de 30–60 cm) que crecen del
+esqueleto y **no son visibles** en la imagen: son demasiado delgadas y quedan
+ocultas entre las flores.
 
-| Script | Descripción |
-|---|---|
-| `Esqueletizacion.py` | Esqueletización masiva de máscaras binarias: binarización Otsu, suavizado morfológico, filtro por grosor vía transformada de distancia, pruning de ramas cortas y reparación automática de gaps de 1 píxel. Soporta modo adaptativo (parámetros automáticos por imagen) y parámetros manuales desde `parametros.json`. |
-| `Param_tuner_esqueletizacion.py` | Interfaz gráfica con sliders para ajustar los parámetros de esqueletización imagen por imagen. Guarda las configuraciones en `parametros.json`, que `Esqueletizacion.py` lee para usar parámetros manuales. |
+El problema central del metodo es inferir donde estan esas varillas invisibles a
+partir de como se disponen las flores, y conectar cada varilla a su rama madre.
 
-### Grafo de ramas
+---
 
-| Script | Descripción |
-|---|---|
-| `Grafo.py` | Convierte un esqueleto binario en un grafo de ramas coloreado. Traza las ramas por topología (número de cruce) y les asigna colores. Interfaz interactiva para hacer merge de ramas, eliminar ramas y exportar el PNG. Soporta modo batch. |
-| `Identificador_de_ramas.py` | Librería de identificación y clasificación de ramas. Agrupa píxeles por color, detecta adyacencia espacial entre ramas, identifica el tronco y clasifica la estructura en jerarquía (Tronco → Rama Principal → Secundaria → ...) mediante BFS. Usada por otros scripts. |
-| `build_graph_json.py` | Lee cada PNG de grafo coloreado, extrae la estructura con `Identificador_de_ramas`, y guarda un JSON por imagen con nodos, aristas, jerarquía y píxeles por rama. Estos JSON son el input de todos los métodos de densidad. |
-
-### Densidad floral
-
-| Script | Descripción |
-|---|---|
-| `varilla_density.py` | **Método principal.** Asigna flor → varilla → rama madre. Agrupa flores en clusters lineales (DBSCAN anisotrópico), ajusta una varilla por cluster (regresión OLS + curvatura opcional), extiende la base hasta el esqueleto y la proyecta a su rama madre. |
-| `euclidian_density.py` | Asigna cada flor a la rama más cercana por distancia euclidiana mínima sobre los píxeles de la rama. |
-| `laplacian_density.py` | Asigna flores a ramas como un problema de clasificación semi-supervisada con Graph Laplacian (Orduz 2019), minimizando pérdida softmax + suavidad Laplaciana. |
-| `glee_density.py` | Asignación de flores a ramas mediante embeddings de grafo (GLEE). |
-| `random_walk_density.py` | Asignación de flores a ramas mediante Random Walk sobre el grafo (Grady 2006). |
-| `hybridlaplac_density.py` | Método híbrido basado en Graph Laplacian, con análisis de ambigüedad. |
-| `hybridrw_density.py` | Método híbrido basado en Random Walk, con análisis de ambigüedad. |
-
-### Visualización
-
-| Script | Descripción |
-|---|---|
-| `Varilla_heatmap.py` | Mapa de calor del esqueleto basado en el modelo de varillas. Para cada píxel del esqueleto acumula la carga floral de las varillas cercanas (kernel gaussiano) y lo colorea con un espectro de calor. Usa el output de `varilla_density.py`. |
-| `RW_heatmap.py` | Mapa de calor de densidad floral por subsecciones de rama, asignando flores con Random Walk. |
-
-
-## Dependencias
+## Pipeline
 
 ```
-numpy
-opencv-python
-scikit-image
-scikit-learn
-scipy
-matplotlib
-gensim
-networkx
+Mascaras binarias
+      |
+      v
+[1] Esqueletizacion              src/preprocessing/
+      |                          (Otsu, suavizado morfologico, Zhang-Suen,
+      v                           pruning, reparacion de gaps)
+[2] Grafo jerarquico de ramas    src/graph/
+      |                          (topologia -> nodos, aristas, orden de
+      v                           ramificacion via BFS desde el tronco)
+[3] Asignacion flor -> rama      src/assignment/
+      |                          (metodos morfologicos y de reconstruccion
+      v                           de brotes)
+[4] Mapa de carga floral         src/density/
+      |
+      v
+[5] Evaluacion contra GT         src/evaluation/
 ```
 
-Instalar con:
+---
+
+## Estructura del repositorio
+
+```
+.
+├── src/
+│   ├── preprocessing/           Esqueletizacion de mascaras
+│   │   ├── skeletonize.py           Pipeline masivo de esqueletizacion
+│   │   └── tune_skeleton_params.py  GUI de calibracion de parametros
+│   │
+│   ├── graph/                   Construccion del grafo de ramas
+│   │   ├── build_skeleton_graph.py  Esqueleto -> grafo coloreado (GUI + batch)
+│   │   ├── branch_hierarchy.py      Clasificacion por orden de ramificacion
+│   │   └── export_graph_json.py     Exporta el grafo a JSON (hub del pipeline)
+│   │
+│   ├── assignment/              Asignacion flor -> rama
+│   │   ├── morphological/           Familia morfologica
+│   │   │   ├── euclidean.py             Distancia euclidiana (baseline)
+│   │   │   ├── graph_laplacian.py       Graph Laplacian semi-supervisado
+│   │   │   ├── random_walk.py           Random Walk absorbente
+│   │   │   ├── glee.py                  GLEE (Geometric Laplacian Eigenmap)
+│   │   │   ├── hybrid_laplacian.py      Euclidiana + Laplaciano (ambiguas)
+│   │   │   └── hybrid_random_walk.py    Euclidiana + Random Walk (ambiguas)
+│   │   │
+│   │   └── shoot_reconstruction/    Familia de reconstruccion de brotes
+│   │       ├── cluster_projection.py    Proyeccion de clusters [PRINCIPAL]
+│   │       ├── candidate_shoots.py      Brotes candidatos (rayos desde tronco)
+│   │       └── lsystem.py               Varillas generadas con L-System
+│   │
+│   ├── density/                 Mapas de carga floral
+│   │   ├── heatmap_shoots.py        Heatmap del esqueleto (metodo principal)
+│   │   ├── heatmap_shoots_v2.py     Heatmap para brotes candidatos
+│   │   └── heatmap_random_walk.py   Heatmap por subsecciones de rama
+│   │
+│   ├── evaluation/              Validacion contra ground truth
+│   │   ├── gt_annotator.py              GUI de anotacion del GT
+│   │   ├── heatmap_wasserstein.py       Wasserstein geodesico GT vs. metodo
+│   │   └── flower_branch_accuracy.py    Accuracy flor->rama multi-metodo
+│   │
+│   └── common/                  (pendiente) Codigo compartido
+│
+├── data/sample/                 Imagenes de ejemplo (pendiente)
+├── docs/                        Documentacion del metodo
+│   ├── PIPELINE.md                  Descripcion detallada y formatos de datos
+│   └── AUDITORIA_REPO.md            Auditoria y plan de trabajo
+├── results/                     Figuras y metricas generadas
+├── configs/                     (pendiente) Configuracion centralizada
+├── notebooks/                   (pendiente) Reproduccion de figuras
+└── requirements.txt
+```
+
+**El dataset completo (292 arboles) no esta en este repositorio**: se deposita
+en Zenodo. Las carpetas de datos locales (`IMGS/`, `Mascaras/`, `Grafos/`,
+`grafos json/`, `json flores/`, `densidades/`) estan excluidas via `.gitignore`.
+
+---
+
+## Instalacion
+
+Requiere **Python 3.9** (probado en 3.9.11, Windows 11).
 
 ```bash
-pip install numpy opencv-python scikit-image scikit-learn scipy matplotlib gensim networkx
+git clone https://github.com/vichogaray/IPre-Duraznos.git
+cd IPre-Duraznos
+pip install -r requirements.txt
 ```
+
+---
+
+## Uso
+
+Cada script tiene un bloque `CONFIGURACION` al inicio con las rutas y
+parametros. Se ejecutan directamente (F5 en el editor, o `python <script>`).
+
+```bash
+# 1. Esqueletizar las mascaras binarias
+python src/preprocessing/skeletonize.py
+
+# 2. Construir el grafo de ramas y exportarlo a JSON
+python src/graph/build_skeleton_graph.py
+python src/graph/export_graph_json.py
+
+# 3. Asignar flores a ramas (metodo principal)
+python src/assignment/shoot_reconstruction/cluster_projection.py
+
+# 4. Generar el mapa de carga floral
+python src/density/heatmap_shoots.py
+
+# 5. Evaluar contra el ground truth
+python src/evaluation/flower_branch_accuracy.py
+```
+
+> **Nota:** las rutas de entrada/salida estan actualmente hardcodeadas en cada
+> script y apuntan a carpetas locales. Centralizarlas en `configs/` es una
+> tarea pendiente (ver la auditoria).
+
+---
+
+## Formatos de datos
+
+| Formato | Convencion de coordenadas |
+|---|---|
+| JSON de grafo — `branches[i].pixels` | `[y, x]` (fila, columna) |
+| JSON de flores (LabelMe) — `shapes[i].points` | `[x, y]` |
+
+En coordenadas de imagen, **+Y apunta hacia abajo** (direccion de la gravedad).
+Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
+
+---
+
+## Pendiente
+
+- [ ] Mapa de densidad en flores·cm⁻¹ (`src/density/flower_load_map.py`)
+- [ ] Centralizar rutas y parametros en `configs/`
+- [ ] Modulo `src/common/` para eliminar codigo duplicado
+- [ ] `data/sample/` con 2–3 arboles de ejemplo
+- [ ] `LICENSE` y `CITATION.cff`
+- [ ] Enlace al dataset en Zenodo (DOI)
+- [ ] Arreglar `src/density/heatmap_shoots.py:38` (`SINGLE_IMAGE` sin valor)
 
 ---
 
 ## Referencias
 
-- Orduz, J. (2019). *Semi-supervised clustering with graph Laplacian*. [juanitorduz.github.io](https://juanitorduz.github.io/semi_supervised_clustering/)
+- Orduz, J. (2019). *Semi-supervised clustering with graph Laplacian*.
+  [juanitorduz.github.io](https://juanitorduz.github.io/semi_supervised_clustering/)
 - Grady, L. (2006). Random walks for image segmentation. *IEEE TPAMI*, 28(11), 1768–1783.
-- Zhang, T. Y., & Suen, C. Y. (1984). A fast parallel algorithm for thinning digital patterns. *Communications of the ACM*, 27(3), 236–239.
+- Torres, L., Chan, K. S., & Eliassi-Rad, T. (2020). GLEE: Geometric Laplacian
+  Eigenmap Embedding. *Journal of Complex Networks*, 8(2).
+- Zhang, T. Y., & Suen, C. Y. (1984). A fast parallel algorithm for thinning
+  digital patterns. *Communications of the ACM*, 27(3), 236–239.
