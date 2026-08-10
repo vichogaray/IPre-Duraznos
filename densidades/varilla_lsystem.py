@@ -31,7 +31,25 @@ GRAFOS_IMG_DIRS = [r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"]
 JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
 
 # Imagen unica de salida.
-SINGLE_IMAGE = "imgs_frame100_00000_graph.json"
+#   - Si es un nombre de archivo -> procesa SOLO esa imagen.
+#   - Si es None                 -> procesa TODOS los *_graph.json de
+#                                   GRAPH_JSON_DIR (carpeta entera).
+SINGLE_IMAGE = None
+
+# Al procesar la carpeta entera (SINGLE_IMAGE = None):
+#   - SHOW_PLOTS = True  -> abre un plot por imagen (uno tras otro; cierra cada
+#                           ventana para pasar a la siguiente).
+#   - SHOW_PLOTS = False -> NO abre ventanas, solo imprime el resumen por imagen
+#                           (recomendado para lotes grandes).
+SHOW_PLOTS = False
+
+# Guardar cada plot como PNG en disco (en vez de / ademas de mostrarlo):
+#   - SAVE_DIR = None        -> no guarda nada (solo muestra segun SHOW_PLOTS).
+#   - SAVE_DIR = r"...ruta"  -> guarda un PNG por imagen en esa carpeta
+#                               (la crea si no existe). Lo tipico para un lote:
+#                               SAVE_DIR = "...", SHOW_PLOTS = False.
+SAVE_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\salidas_lsystem"
+SAVE_DPI = 150
 
 # === ESCALA (calibracion px <-> cm POR IMAGEN) ===
 # Auto: altura del esqueleto (max y - min y) / ASSUMED_TREE_HEIGHT_CM.
@@ -436,7 +454,7 @@ def reconstruir(graph_data, flores_xy, px_por_cm):
 # =====================================================================
 
 def visualizar(img, scaffold_xy, pix_branch_id, varillas,
-               flores_xy, flower_branch, title):
+               flores_xy, flower_branch, title, save_path=None, show=True):
     if DARK_BG:
         plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(13, 11))
@@ -492,7 +510,16 @@ def visualizar(img, scaffold_xy, pix_branch_id, varillas,
     ax.set_aspect('equal')
     ax.axis('off')
     plt.tight_layout()
-    plt.show()
+
+    if save_path is not None:
+        fig.savefig(save_path, dpi=SAVE_DPI, bbox_inches='tight',
+                    facecolor=fig.get_facecolor())
+        print("    [GUARDADO] " + save_path)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
 
 
 # =====================================================================
@@ -545,16 +572,62 @@ def run_one(graph_json_path):
     print("    Reparto por rama: " + ", ".join(
         "rama{0}={1}".format(b, rep[b]) for b in sorted(rep)))
 
-    visualizar(img, scaffold_xy, pix_branch_id, varillas,
-               flores_xy, flower_branch,
-               os.path.splitext(os.path.basename(graph_json_path))[0])
+    base = os.path.splitext(os.path.basename(graph_json_path))[0]
+    save_path = None
+    if SAVE_DIR is not None:
+        os.makedirs(SAVE_DIR, exist_ok=True)
+        save_path = os.path.join(SAVE_DIR, base + ".png")
+
+    # genera la figura si hay que mostrarla o guardarla
+    if SHOW_PLOTS or save_path is not None:
+        visualizar(img, scaffold_xy, pix_branch_id, varillas,
+                   flores_xy, flower_branch, base,
+                   save_path=save_path, show=SHOW_PLOTS)
+
+
+def listar_graph_jsons(graph_json_dir):
+    """Devuelve los *_graph.json de la carpeta, en orden por numero de frame."""
+    nombres = [f for f in os.listdir(graph_json_dir)
+               if f.endswith("_graph.json")]
+
+    def clave(nombre):
+        m = re.search(r'frame(\d+)', nombre)
+        return (int(m.group(1)) if m else 1 << 30, nombre)
+
+    return sorted(nombres, key=clave)
 
 
 if __name__ == "__main__":
-    path = os.path.join(GRAPH_JSON_DIR, SINGLE_IMAGE)
-    if not os.path.exists(path):
-        raise FileNotFoundError("No se encontro el JSON de grafo: " + path)
-    print("[INFO] Asignando flores -> varilla (L-System) -> rama:\n  "
-          + os.path.basename(path) + "\n")
-    run_one(path)
-    print("\n[DONE]")
+    if SINGLE_IMAGE is not None:
+        # --- una sola imagen ---
+        rutas = [os.path.join(GRAPH_JSON_DIR, SINGLE_IMAGE)]
+        if not os.path.exists(rutas[0]):
+            raise FileNotFoundError(
+                "No se encontro el JSON de grafo: " + rutas[0])
+    else:
+        # --- carpeta entera ---
+        nombres = listar_graph_jsons(GRAPH_JSON_DIR)
+        if not nombres:
+            raise FileNotFoundError(
+                "No se encontraron *_graph.json en: " + GRAPH_JSON_DIR)
+        rutas = [os.path.join(GRAPH_JSON_DIR, n) for n in nombres]
+
+    print("[INFO] Asignando flores -> varilla (L-System) -> rama")
+    print("[INFO] {0} imagen(es) a procesar.\n".format(len(rutas)))
+
+    fallidas = []
+    for i, path in enumerate(rutas, 1):
+        print("[{0}/{1}] {2}".format(i, len(rutas), os.path.basename(path)))
+        try:
+            run_one(path)
+        except Exception as e:
+            print("    [ERROR] {0}".format(e))
+            fallidas.append((os.path.basename(path), str(e)))
+        print("")
+
+    if fallidas:
+        print("[AVISO] {0} imagen(es) fallaron:".format(len(fallidas)))
+        for nombre, err in fallidas:
+            print("    - {0}: {1}".format(nombre, err))
+
+    print("[DONE]")

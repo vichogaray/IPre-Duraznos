@@ -19,8 +19,8 @@ Output:
 
 Uso:
     1. Ajusta la CONFIGURACION abajo (sobre todo ASSUMED_TREE_HEIGHT_CM)
-    2. F5 con SINGLE_IMAGE seleccionado para tunear
-    3. SINGLE_IMAGE = None para batch
+    2. Pon IMAGE_NAME con el JSON de grafo a procesar
+    3. F5 -> abre el plot de matplotlib
 """
 
 # =====================================================================
@@ -30,13 +30,9 @@ Uso:
 GRAPH_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\grafos json"
 GRAFOS_IMG_DIRS = [r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"]
 JSON_FLORES_DIR = r"C:\Users\vgara\OneDrive\Desktop\IPre\json flores"
-OUTPUT_DIR      = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\densidad floral varilla"
-JSON_OUT_DIR    = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\densidad floral varilla\json"
 
-# Procesar una sola imagen (None = batch sobre todas)
-SINGLE_IMAGE = "imgs_frame100_00000_graph.json"
-SHOW_PLOT    = True   # True: plt.show()  /  False: solo guardar PNG
-SAVE_OUTPUTS = False  # True: guarda PNG+JSON  /  False: solo plot (tuneo)
+# Imagen a procesar: nombre del JSON de grafo dentro de GRAPH_JSON_DIR
+IMAGE_NAME = "imgs_frame101_00000_graph.json"
 
 # === ESCALA (calibracion px <-> cm POR IMAGEN) ===
 # Auto-calibracion: medimos la altura del esqueleto (max y - min y de TODOS
@@ -55,12 +51,12 @@ MAX_BASAL_EXTENSION_CM  = 18.0   # cuanto extender mas alla del ultimo flor
 
 # === CLUSTERING ===
 DBSCAN_EPS_CM        = 4.0       # ~1.5 internodos
-DBSCAN_MIN_SAMPLES   = 1         # 1 -> cero ruido: TODA flor cae en alguna varilla
+DBSCAN_MIN_SAMPLES   = 1    # 1 -> cero ruido: TODA flor cae en alguna varilla
 ANISOTROPY_LAMBDA    = 4.0       # cuanto penalizar separacion en X vs Y
                                  # (varillas son aprox verticales -> X scale > 1)
 
 # === FORMA DE LA VARILLA (parabola muy poco achatada) ===
-USE_QUADRATIC_THRESHOLD = 5      # con >= N flores, ajustar parabola
+USE_QUADRATIC_THRESHOLD = 10      # con >= N flores, ajustar parabola
 MAX_CURVATURE_COEF      = 0.0012 # 1/px, tope de curvatura (mantener "poco achatada")
 
 # === FILTROS (solo informativos: no descartan flores) ===
@@ -75,7 +71,7 @@ FLOWERS_PER_VARILLA_MAX = 60
 # La fusion es transitiva (union-find): si A~B y B~C, los tres se vuelven uno.
 ENABLE_MERGE        = True
 MERGE_ANGLE_DEG     = 20.0
-MERGE_LATERAL_CM    = 24.0
+MERGE_LATERAL_CM    = 36.0
 MERGE_MAX_DIST_CM   = 50.0
 
 # === PROYECCION AL ESQUELETO ===
@@ -94,15 +90,11 @@ VARILLA_ALPHA = 0.6              # transparencia de las curvas de varilla
 
 import os
 import re
-import glob
 import json
 import numpy as np
 import cv2
 from collections import defaultdict
 
-import matplotlib
-if not SHOW_PLOT:
-    matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 
@@ -204,21 +196,62 @@ def build_skeleton_kdtree(graph_data):
 #  3. CLUSTERING ANISOTROPICO
 # =====================================================================
 
+def _dbscan_aniso(F, eps_px, min_samples, lambda_x, lambda_y):
+    """DBSCAN sobre coords escaladas X'=X*lambda_x, Y'=Y*lambda_y."""
+    F_scaled = F.copy()
+    F_scaled[:, 0] *= lambda_x
+    F_scaled[:, 1] *= lambda_y
+    db = DBSCAN(eps=eps_px, min_samples=min_samples, metric='euclidean')
+    return db.fit_predict(F_scaled)
+
+
 def cluster_flowers(flowers_xy, eps_px, min_samples, lambda_x):
     """
-    DBSCAN sobre coordenadas escaladas: X' = X * lambda_x, Y' = Y.
-    Esto equivale a una distancia euclideana anisotropica que penaliza
-    mas la separacion en X (perpendicular a la varilla esperada) que en Y.
+    DBSCAN anisotropico DEPENDIENTE DE LA ALTURA.
 
-    Retorna: array (n_flowers,) con label de cluster (-1 = ruido).
+    Las varillas de la mitad inferior del arbol no crecen tan verticales como
+    las de arriba. Por eso partimos las flores por la mitad de la altura y
+    aplicamos una anisotropia distinta a cada mitad:
+
+      - Mitad SUPERIOR (y < y_medio): X' = X * lambda_x, Y' = Y
+        -> penaliza separacion horizontal -> favorece clusters VERTICALES.
+      - Mitad INFERIOR (y >= y_medio): X' = X, Y' = Y * lambda_x
+        -> penaliza separacion vertical -> favorece clusters HORIZONTALES,
+           en la MISMA magnitud que la mitad de arriba favorece la vertical.
+
+    y_medio = (y_min + y_max) / 2 sobre TODAS las flores (linea vertical entre
+    el pixel de flor mas bajo y el mas alto). Cada mitad se clusteriza con un
+    DBSCAN independiente y las etiquetas se reunen con un offset para que no
+    colisionen.
+
+    Retorna: array (n_flowers,) con label de cluster (-1 = ruido), en el mismo
+    orden que flowers_xy.
     """
     if len(flowers_xy) == 0:
         return np.array([], dtype=np.int32)
     F = np.array(flowers_xy, dtype=np.float64)
-    F_scaled = F.copy()
-    F_scaled[:, 0] *= lambda_x
-    db = DBSCAN(eps=eps_px, min_samples=min_samples, metric='euclidean')
-    labels = db.fit_predict(F_scaled)
+
+    y = F[:, 1]
+    y_mid = 0.5 * (float(y.min()) + float(y.max()))
+    upper_mask = y < y_mid          # mitad superior (favorece vertical)
+    lower_mask = ~upper_mask        # mitad inferior (favorece horizontal)
+
+    labels = np.full(len(F), -1, dtype=np.int32)
+    next_label = 0
+
+    for mask, (lx, ly) in ((upper_mask, (lambda_x, 1.0)),
+                           (lower_mask, (1.0, lambda_x))):
+        if not np.any(mask):
+            continue
+        sub_labels = _dbscan_aniso(F[mask], eps_px, min_samples, lx, ly)
+        # reindexar: ruido (-1) se conserva; clusters validos reciben offset
+        out = np.full(sub_labels.shape, -1, dtype=np.int32)
+        valid = sub_labels >= 0
+        if np.any(valid):
+            out[valid] = sub_labels[valid] + next_label
+            next_label += int(sub_labels[valid].max()) + 1
+        labels[mask] = out
+
     return labels
 
 
@@ -851,43 +884,16 @@ def visualize(img, graph_data, flowers, varillas, flower_assignments,
 
     plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight',
-                    facecolor=fig_bg)
-    if SHOW_PLOT:
-        plt.show()
-    else:
+        import os as _os
+        _os.makedirs(_os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path, dpi=150, facecolor=fig_bg, bbox_inches='tight')
         plt.close(fig)
+    else:
+        plt.show()
 
 
 # =====================================================================
-#  8. SALIDA JSON
-# =====================================================================
-
-def save_assignment_json(out_path, image_name, flowers, varillas,
-                         flower_assignments):
-    out = {
-        'image': image_name,
-        'n_flowers': len(flowers),
-        'n_varillas': len(varillas),
-        'n_orphan_flowers': sum(1 for a in flower_assignments
-                                if a['varilla_id'] < 0),
-        'varillas': varillas,
-        'flowers': [
-            {'flower_id': i, 'x': float(flowers[i][0]),
-             'y': float(flowers[i][1]),
-             'varilla_id': flower_assignments[i]['varilla_id'],
-             'rama_id': flower_assignments[i]['rama_id'],
-             'confidence': flower_assignments[i]['confidence']}
-            for i in range(len(flowers))
-        ],
-    }
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, 'w', encoding='utf-8') as f:
-        json.dump(out, f, indent=2)
-
-
-# =====================================================================
-#  9. RUN POR IMAGEN
+#  8. RUN POR IMAGEN
 # =====================================================================
 
 def build_hyperparams(px_per_cm):
@@ -913,7 +919,16 @@ def build_hyperparams(px_per_cm):
     }
 
 
-def run_one(graph_json_path):
+def compute_varilla_data(graph_json_path):
+    """
+    Corre TODO el pipeline de varillas sobre un grafo y DEVUELVE el resultado
+    como un dict (mismo formato que el JSON de varilla), sin mostrar plot ni
+    escribir en disco. Es la función que usa el pipeline automático / supremo.
+
+    Devuelve (varilla_data, contexto) donde contexto = (img, graph_data,
+    flowers, varillas, flower_assignments) por si se quiere visualizar después.
+    Si no hay flores, devuelve (None, None).
+    """
     graph_data = load_graph_json(graph_json_path)
     image_name = graph_data['image']
 
@@ -927,7 +942,7 @@ def run_one(graph_json_path):
 
     if not flowers:
         print("    [SKIP] Sin flores.")
-        return
+        return None, None
 
     if PIXELS_PER_CM_OVERRIDE is not None:
         px_per_cm = float(PIXELS_PER_CM_OVERRIDE)
@@ -944,21 +959,40 @@ def run_one(graph_json_path):
     print("    Varillas: {0}  ({1} con curvatura)".format(
         len(varillas), n_quad))
 
-    fname = os.path.splitext(os.path.basename(graph_json_path))[0]
+    # Serializar al formato del JSON de varilla
+    flowers_out = []
+    for fi, (fx, fy) in enumerate(flowers):
+        a = flower_assignments[fi]
+        flowers_out.append({
+            'flower_id': fi,
+            'x': float(fx), 'y': float(fy),
+            'varilla_id': a['varilla_id'],
+            'rama_id': a['rama_id'],
+            'confidence': float(a['confidence']),
+        })
+    n_orphan = sum(1 for a in flower_assignments if a['varilla_id'] < 0)
+    varilla_data = {
+        'image': image_name,
+        'n_flowers': len(flowers),
+        'n_varillas': len(varillas),
+        'n_orphan_flowers': n_orphan,
+        'varillas': varillas,
+        'flowers': flowers_out,
+    }
+    contexto = (img, graph_data, flowers, varillas, flower_assignments)
+    return varilla_data, contexto
 
-    if SAVE_OUTPUTS:
-        png_path  = os.path.join(OUTPUT_DIR,   fname + "_varilla.png")
-        json_path = os.path.join(JSON_OUT_DIR, fname + "_varilla.json")
-        visualize(img, graph_data, flowers, varillas, flower_assignments,
-                  save_path=png_path)
-        save_assignment_json(json_path, image_name, flowers, varillas,
-                             flower_assignments)
-        print("    [OK] -> {0}".format(os.path.basename(png_path)))
-    else:
-        # Modo tuneo: solo mostrar el plot, sin escribir archivos.
-        visualize(img, graph_data, flowers, varillas, flower_assignments,
-                  save_path=None)
-        print("    [OK] plot mostrado (sin guardar)")
+
+def run_one(graph_json_path, show_plot=True):
+    """Computa las varillas y, si show_plot, muestra el plot (uso manual)."""
+    varilla_data, contexto = compute_varilla_data(graph_json_path)
+    if varilla_data is None:
+        return None
+    if show_plot:
+        img, graph_data, flowers, varillas, flower_assignments = contexto
+        visualize(img, graph_data, flowers, varillas, flower_assignments)
+        print("    [OK] plot mostrado")
+    return varilla_data
 
 
 # =====================================================================
@@ -966,25 +1000,9 @@ def run_one(graph_json_path):
 # =====================================================================
 
 if __name__ == "__main__":
-    if SINGLE_IMAGE:
-        json_files = [os.path.join(GRAPH_JSON_DIR, SINGLE_IMAGE)]
-    else:
-        json_files = sorted(glob.glob(os.path.join(GRAPH_JSON_DIR, "*.json")))
-    if not json_files:
-        raise FileNotFoundError("No se encontraron JSONs en: " + GRAPH_JSON_DIR)
+    json_path = os.path.join(GRAPH_JSON_DIR, IMAGE_NAME)
+    if not os.path.exists(json_path):
+        raise FileNotFoundError("No se encontro el JSON: " + json_path)
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    os.makedirs(JSON_OUT_DIR, exist_ok=True)
-    print("[INFO] Procesando {0} imagen(es)...\n".format(len(json_files)))
-
-    ok, errors = 0, 0
-    for jf in json_files:
-        print("  " + os.path.basename(jf))
-        try:
-            run_one(jf)
-            ok += 1
-        except Exception as e:
-            print("    [ERROR] {0}".format(e))
-            errors += 1
-
-    print("\n[DONE] {0} OK, {1} errores.".format(ok, errors))
+    print("[INFO] Procesando " + os.path.basename(json_path) + "\n")
+    run_one(json_path)

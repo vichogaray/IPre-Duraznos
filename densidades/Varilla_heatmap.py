@@ -35,7 +35,7 @@ VARILLA_JSON_DIR  = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\densidad f
 GRAFOS_IMG_DIR    = r"C:\Users\vgara\OneDrive\Desktop\IPre\Grafos"
 OUTPUT_DIR        = r"C:\Users\vgara\OneDrive\Desktop\IPre\densidades\mapa de calor tronco"
 
-SINGLE_IMAGE = None
+SINGLE_IMAGE = 
 SHOW_PLOT    = False
 
 # === ESCALA (igual que varilla_density.py) ===
@@ -52,6 +52,11 @@ KERNEL_SIGMA_CM = 8.0
 # === VISUALIZACION ===
 DARK_BG          = True
 HEAT_CMAP        = 'jet'       # azul -> cian -> verde -> amarillo -> rojo
+# Escala de color ABSOLUTA compartida con Varilla_heatmap_2.py: fija el tope
+# del colormap para que una misma carga floral acumulada reciba SIEMPRE el
+# mismo color en v1 y en v2 (sin auto-escalar al maximo de cada imagen).
+# None -> auto-escala al heat.max() de la imagen (comportamiento antiguo).
+VMAX_FIJO        = 60.0
 SKEL_THICKNESS_PX = 3          # grosor del esqueleto pintado (1 = 1px, 3 = 3x3, ...)
 FLOWER_SIZE      = 3
 SHOW_FLOWERS     = True        # mostrar flores como puntos blancos
@@ -175,7 +180,10 @@ def visualize_heatmap(img, skel_xy, heat, varilla_data, sigma_cm, save_path):
                            constrained_layout=True)
     fig.patch.set_facecolor(fig_bg)
 
-    heat_max = float(heat.max()) if len(heat) and heat.max() > 0 else 1.0
+    if VMAX_FIJO is not None:
+        heat_max = float(VMAX_FIJO)
+    else:
+        heat_max = float(heat.max()) if len(heat) and heat.max() > 0 else 1.0
     norm = Normalize(vmin=0.0, vmax=heat_max)
 
     # Fondo en escala de grises -> RGB float [0, 1]. Sobre esta misma
@@ -261,12 +269,21 @@ def visualize_heatmap(img, skel_xy, heat, varilla_data, sigma_cm, save_path):
 # =====================================================================
 
 def run_one(graph_json_path):
-    graph_data = load_json(graph_json_path)
-    image_name = graph_data['image']
-
+    """Lee el JSON de varilla desde disco y genera el heatmap (uso individual)."""
     varilla_json = auto_detect_varilla_json(
         os.path.basename(graph_json_path), VARILLA_JSON_DIR)
     varilla_data = load_json(varilla_json)
+    return run_one_data(graph_json_path, varilla_data)
+
+
+def run_one_data(graph_json_path, varilla_data, save_path=None):
+    """
+    Genera el heatmap recibiendo varilla_data EN MEMORIA (no lee de disco).
+    Es la entrada que usa el pipeline automático / supremo.
+    Si save_path es None, usa el comportamiento por defecto (SHOW_PLOT / OUTPUT_DIR).
+    """
+    graph_data = load_json(graph_json_path)
+    image_name = graph_data['image']
 
     img_path = auto_detect_image(image_name, GRAFOS_IMG_DIR)
     img = cv2.imread(img_path)
@@ -289,17 +306,19 @@ def run_one(graph_json_path):
               float(heat.max()) if len(heat) else 0.0,
               float(heat.sum()) if len(heat) else 0.0))
 
-    if SHOW_PLOT:
-        save_path = None
-    else:
+    # save_path explícito (supremo) tiene prioridad; si no, comportamiento default
+    if save_path is None and not SHOW_PLOT:
         fname = os.path.splitext(os.path.basename(graph_json_path))[0]
         save_path = os.path.join(OUTPUT_DIR, fname + "_heatmap.png")
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
     visualize_heatmap(img, skel_xy, heat, varilla_data,
                       KERNEL_SIGMA_CM, save_path)
     if save_path:
         print("    [OK] -> {0}".format(os.path.basename(save_path)))
     else:
         print("    [OK] (mostrado en pantalla)")
+    return save_path
 
 
 # =====================================================================
