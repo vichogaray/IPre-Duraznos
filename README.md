@@ -160,8 +160,12 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 - [ ] Centralizar rutas y parametros en `configs/`
 - [ ] Modulo compartido que elimine el codigo duplicado: `load_flowers` (x10),
       `load_graph_json` (x8) y `estimate_pixels_per_cm` (x5) estan reescritas en
-      cada script. La ultima calibra px<->cm, asi que copias divergentes darian
-      escalas distintas entre metodos y romperian su comparacion
+      cada script. **Las copias se verificaron funcionalmente identicas** (solo
+      difieren en estilo y comentarios), asi que los resultados actuales son
+      consistentes. Se unifican como prevencion: `estimate_pixels_per_cm`
+      calibra px<->cm, de modo que si en el futuro se edita una copia y no las
+      demas, los metodos pasarian a medir con escalas distintas y dejarian de
+      ser comparables entre si -- sin que nada falle de forma visible
 - [ ] `data/sample/` con 2–3 arboles de ejemplo
 - [ ] `LICENSE` y `CITATION.cff`
 - [ ] Enlace al dataset en Zenodo (DOI)
