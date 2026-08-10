@@ -81,12 +81,10 @@ Mascaras binarias
 │   │   ├── heatmap_shoots_v2.py     Heatmap para brotes candidatos
 │   │   └── heatmap_random_walk.py   Heatmap por subsecciones de rama
 │   │
-│   ├── evaluation/              Validacion contra ground truth
-│   │   ├── gt_annotator.py              GUI de anotacion del GT
-│   │   ├── heatmap_wasserstein.py       Wasserstein geodesico GT vs. metodo
-│   │   └── flower_branch_accuracy.py    Accuracy flor->rama multi-metodo
-│   │
-│   └── common/                  Codigo compartido (por poblar)
+│   └── evaluation/              Validacion contra ground truth
+│       ├── gt_annotator.py              GUI de anotacion del GT
+│       ├── heatmap_wasserstein.py       Wasserstein geodesico GT vs. metodo
+│       └── flower_branch_accuracy.py    Accuracy flor->rama multi-metodo
 │
 ├── docs/                        Documentacion del metodo
 │   ├── PIPELINE.md                  Descripcion detallada y formatos de datos
@@ -158,7 +156,10 @@ Detalle completo en [`docs/PIPELINE.md`](docs/PIPELINE.md).
 
 - [ ] Mapa de densidad en flores·cm⁻¹ (`src/density/flower_load_map.py`)
 - [ ] Centralizar rutas y parametros en `configs/`
-- [ ] Modulo `src/common/` para eliminar codigo duplicado
+- [ ] Modulo compartido que elimine el codigo duplicado: `load_flowers` (x10),
+      `load_graph_json` (x8) y `estimate_pixels_per_cm` (x5) estan reescritas en
+      cada script. La ultima calibra px<->cm, asi que copias divergentes darian
+      escalas distintas entre metodos y romperian su comparacion
 - [ ] `data/sample/` con 2–3 arboles de ejemplo
 - [ ] `LICENSE` y `CITATION.cff`
 - [ ] Enlace al dataset en Zenodo (DOI)
