@@ -55,13 +55,13 @@ import glob
 #  Categorías jerárquicas
 # ---------------------------------------------------------------------------
 HIERARCHY = [
-    # (nombre,           hex,       BGR para OpenCV)
-    ("Tronco",           "#E02020", (32,  32,  224)),
-    ("Rama Principal",   "#20C820", (0,   200, 32)),
-    ("Rama Secundaria",  "#2896FF", (255, 150, 40)),
-    ("Rama Terciaria",   "#FF8C00", (0,   140, 255)),
-    ("Rama Cuaternaria", "#D020D0", (208, 32,  208)),
-    ("Rama Quinaria",    "#00BFBF", (191, 191, 0)),
+    # (nombre,       hex,       BGR para OpenCV)
+    ("1º order",     "#E02020", (32,  32,  224)),
+    ("2º order",     "#20C820", (0,   200, 32)),
+    ("3º order",     "#2896FF", (255, 150, 40)),
+    ("4º order",     "#FF8C00", (0,   140, 255)),
+    ("5º order",     "#D020D0", (208, 32,  208)),
+    ("6º order",     "#00BFBF", (191, 191, 0)),
 ]
 
 
@@ -70,7 +70,7 @@ def _hier_name(level):
         return "Desconectada"
     if level < len(HIERARCHY):
         return HIERARCHY[level][0]
-    return f"Rama Nivel {level}"
+    return f"{level + 1}º order"
 
 
 def _hier_hex(level):
@@ -342,30 +342,13 @@ def visualize(img, branches, levels, trunk_ids,
         mask_disc = cv2.dilate(mask_disc, kernel)
     classified[mask_disc > 0] = _hier_bgr(-1)
 
-    # --- Matplotlib ---
-    fig, axes = plt.subplots(1, 2, figsize=(18, 10))
+    # --- Matplotlib (solo la imagen clasificada) ---
+    fig, ax2 = plt.subplots(1, 1, figsize=(10, 10))
     fig.patch.set_facecolor(fig_bg)
     fig.suptitle('Clasificación Jerárquica de Ramas', fontsize=15,
                  fontweight='bold', color=txt_col)
 
-    # Izquierda: imagen original
-    ax1 = axes[0]
-    ax1.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    ax1.set_title('Esqueleto Original (por color)', color=txt_col, fontsize=12)
-    ax1.axis('off')
-    ax1.set_facecolor(fig_bg)
-
-    # Etiquetas con ID de rama sobre imagen original
-    if show_labels:
-        for bid, branch in branches.items():
-            cx, cy = int(branch['avg_x']), int(branch['avg_y'])
-            ax1.text(cx, cy, str(bid), fontsize=8, fontweight='bold',
-                     color='white', ha='center', va='center',
-                     bbox=dict(boxstyle='round,pad=0.2', facecolor='black',
-                               alpha=0.75, edgecolor='none'), zorder=10)
-
-    # Derecha: clasificación jerárquica
-    ax2 = axes[1]
+    # Clasificación jerárquica
     ax2.imshow(cv2.cvtColor(classified, cv2.COLOR_BGR2RGB))
     ax2.set_title('Clasificación Jerárquica', color=txt_col, fontsize=12)
     ax2.axis('off')
@@ -377,8 +360,7 @@ def visualize(img, branches, levels, trunk_ids,
             lvl = levels.get(bid, -1)
             name = _hier_name(lvl)
             cx, cy = int(branch['avg_x']), int(branch['avg_y'])
-            marker = " *" if bid in trunk_ids else ""
-            label = f"R{bid}: {name}{marker}"
+            label = f"R{bid}: {name}"
             ax2.text(cx, cy, label, fontsize=7, fontweight='bold',
                      color='white', ha='center', va='center',
                      bbox=dict(boxstyle='round,pad=0.3', facecolor='black',
@@ -462,9 +444,8 @@ def run(skeleton_path, color_tolerance=25, proximity_gap=7,
         b = branches[bid]
         lvl = levels[bid]
         name = _hier_name(lvl)
-        marker = "  << TRONCO" if bid in trunk_ids else ""
         print(f"  Rama {bid:2d}:  {b['size']:5d} px  |  color {b['color_hex']}"
-              f"  |  Nivel {lvl:2d}  ->  {name}{marker}")
+              f"  |  Nivel {lvl:2d}  ->  {name}")
     print(f"{'=' * 70}")
     max_lvl = max((lv for lv in levels.values() if lv >= 0), default=0)
     print(f"  Profundidad maxima: {max_lvl}")
